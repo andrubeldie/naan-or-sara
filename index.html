@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Naan sau Sara?</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      padding: 32px 16px;
+      background: #1e1e1e;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #f5f5f5;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+
+    /* --- comparison slider --- */
+    .compare {
+      position: relative;
+      width: 80vw;
+      height: 80vh;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+      user-select: none;
+      touch-action: none;
+      background: #1e1e1e;
+    }
+
+    .compare img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      -webkit-user-drag: none;
+      background: #1e1e1e;
+    }
+
+    /* top image is clipped from the left edge up to the divider */
+    .compare .top {
+      clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0);
+    }
+
+    .divider {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: var(--pos, 50%);
+      width: 4px;
+      transform: translateX(-50%);
+      background: #fff;
+      cursor: ew-resize;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    }
+
+    .handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 44px;
+      height: 44px;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1e1e1e;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .hint {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="title"></h1>
+
+  <div class="compare" id="compare">
+    <img class="bottom" id="imgRight" alt="" />
+    <img class="top" id="imgLeft" alt="" />
+    <div class="divider" id="divider">
+      <div class="handle">⇄</div>
+    </div>
+  </div>
+
+  <p class="hint">Trage bara stânga / dreapta pentru a descoperi mai mult.</p>
+
+  <script>
+    const NAAN = "naan.jpg";
+    const SARA = "sara.jpg";
+
+    // Randomly decide the headline + image order.
+    const naanFirst = Math.random() < 0.5;
+
+    document.getElementById("title").textContent =
+      naanFirst ? "Naan sau Sara?" : "Sara sau Naan?";
+
+    // Left image = first one in the headline, right image = second.
+    document.getElementById("imgLeft").src = naanFirst ? NAAN : SARA;
+    document.getElementById("imgRight").src = naanFirst ? SARA : NAAN;
+
+    // --- drag logic ---
+    const compare = document.getElementById("compare");
+    let dragging = false;
+
+    function setPos(clientX) {
+      const rect = compare.getBoundingClientRect();
+      let pct = ((clientX - rect.left) / rect.width) * 100;
+      pct = Math.max(0, Math.min(100, pct));
+      compare.style.setProperty("--pos", pct + "%");
+    }
+
+    function start(e) {
+      dragging = true;
+      setPos(e.clientX ?? e.touches[0].clientX);
+    }
+    function move(e) {
+      if (!dragging) return;
+      setPos(e.clientX ?? e.touches[0].clientX);
+    }
+    function end() { dragging = false; }
+
+    compare.addEventListener("pointerdown", start);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", end);
+
+    // Start centered.
+    compare.style.setProperty("--pos", "50%");
+  </script>
+</body>
+</html>
