@@ -89,6 +89,35 @@
     .hint {
       font-size: 0.9rem;
       color: #aaa;
+      text-align: center;
+    }
+
+    /* --- mobile: vertical slider (drag up / down) --- */
+    @media (max-width: 768px) {
+      .compare {
+        width: 90vw;
+        height: 70vh;
+      }
+
+      /* top image is clipped from the top edge down to the divider */
+      .compare .top {
+        clip-path: inset(0 0 calc(100% - var(--pos, 50%)) 0);
+      }
+
+      .divider {
+        top: var(--pos, 50%);
+        left: 0;
+        right: 0;
+        bottom: auto;
+        width: auto;
+        height: 4px;
+        transform: translateY(-50%);
+        cursor: ns-resize;
+      }
+
+      .handle {
+        transform: translate(-50%, -50%) rotate(90deg);
+      }
     }
   </style>
 </head>
@@ -103,7 +132,7 @@
     </div>
   </div>
 
-  <p class="hint">Trage bara stânga / dreapta pentru a descoperi mai mult.</p>
+  <p class="hint" id="hint"></p>
 
   <script>
     const NAAN = "naan.jpg";
@@ -121,28 +150,41 @@
 
     // --- drag logic ---
     const compare = document.getElementById("compare");
+    const hint = document.getElementById("hint");
+    const mq = window.matchMedia("(max-width: 768px)");
     let dragging = false;
 
-    function setPos(clientX) {
+    function setPos(clientX, clientY) {
       const rect = compare.getBoundingClientRect();
-      let pct = ((clientX - rect.left) / rect.width) * 100;
+      let pct = mq.matches
+        ? ((clientY - rect.top) / rect.height) * 100   // vertical on mobile
+        : ((clientX - rect.left) / rect.width) * 100;  // horizontal on desktop
       pct = Math.max(0, Math.min(100, pct));
       compare.style.setProperty("--pos", pct + "%");
     }
 
     function start(e) {
       dragging = true;
-      setPos(e.clientX ?? e.touches[0].clientX);
+      setPos(e.clientX, e.clientY);
     }
     function move(e) {
       if (!dragging) return;
-      setPos(e.clientX ?? e.touches[0].clientX);
+      setPos(e.clientX, e.clientY);
     }
     function end() { dragging = false; }
 
     compare.addEventListener("pointerdown", start);
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", end);
+
+    // Hint text follows the active orientation.
+    function updateHint() {
+      hint.textContent = mq.matches
+        ? "Trage bara sus / jos pentru a descoperi mai mult."
+        : "Trage bara stânga / dreapta pentru a descoperi mai mult.";
+    }
+    mq.addEventListener("change", updateHint);
+    updateHint();
 
     // Start centered.
     compare.style.setProperty("--pos", "50%");
