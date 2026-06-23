@@ -135,8 +135,11 @@
   <p class="hint" id="hint"></p>
 
   <script>
-    const NAAN = "naan.jpg";
-    const SARA = "sara.jpg";
+    const mq = window.matchMedia("(max-width: 768px)");
+
+    // Desktop vs mobile image variants (swap on the 768px breakpoint).
+    const NAAN = { desktop: "naan.jpg", mobile: "naan-mobile.jpg" };
+    const SARA = { desktop: "sara.jpg", mobile: "sara-mobile.jpg" };
 
     // Randomly decide the headline + image order.
     const naanFirst = Math.random() < 0.5;
@@ -144,14 +147,22 @@
     document.getElementById("title").textContent =
       naanFirst ? "Naan sau Sara?" : "Sara sau Naan?";
 
+    const imgLeft = document.getElementById("imgLeft");
+    const imgRight = document.getElementById("imgRight");
+
     // Left image = first one in the headline, right image = second.
-    document.getElementById("imgLeft").src = naanFirst ? NAAN : SARA;
-    document.getElementById("imgRight").src = naanFirst ? SARA : NAAN;
+    // Pick the variant that matches the current viewport.
+    function applyImages() {
+      const variant = mq.matches ? "mobile" : "desktop";
+      imgLeft.src = (naanFirst ? NAAN : SARA)[variant];
+      imgRight.src = (naanFirst ? SARA : NAAN)[variant];
+    }
+    applyImages();
+    mq.addEventListener("change", applyImages);
 
     // --- drag logic ---
     const compare = document.getElementById("compare");
     const hint = document.getElementById("hint");
-    const mq = window.matchMedia("(max-width: 768px)");
     let dragging = false;
 
     function setPos(clientX, clientY) {
